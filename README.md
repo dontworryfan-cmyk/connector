@@ -1,21 +1,29 @@
-# Connector Panel (3x-UI subscriptions)
+# Connector — панель объединения подписок 3x-UI
 
-Панель объединяет до **10 подписок 3x-UI** в одном месте.
+Проект пересобран как рабочий аналог идеи `nginx-3x-ui-subscription-proxy`, но с полноценной **веб-админкой с авторизацией**.
 
-## Что реализовано
+## Что умеет
 
-- Админ-панель с авторизацией.
-- Автоматическая **разовая** генерация логина и пароля при первом запуске.
-- Хранение учетной записи администратора и сессий в MySQL.
-- Главное меню для добавления/удаления подписок (лимит 10).
-- Эндпоинт `/combined` для получения объединенного списка URL подписок.
-- Светлая тема (белый фон / черный текст) и ночной режим (темно-серый фон / белый текст).
+- Авторизация в админку.
+- Автоматическая **одноразовая генерация** admin логина/пароля при первом запуске.
+- Хранение admin-учетки, сессий, источников и токена подписки в MySQL.
+- Добавление/удаление/включение/выключение источников подписок.
+- Ограничение: максимум **10** источников.
+- Эндпоинт объединенной подписки: `/sub/<token>`.
+- Объединение происходит сервером: он скачивает все включенные источники, извлекает URI (`vmess://`, `vless://`, `trojan://`, `ss://`, ...), удаляет дубли и отдает результат в base64.
+- Светлая тема (белая) и ночная тема (темно-серая).
 
 ---
 
-## 1) Подготовка сервера
+## Архитектура
 
-Пример рассчитан на Ubuntu 22.04+.
+- `Node.js` — backend + GUI (Express, EJS).
+- `MySQL` — хранение данных и сессий.
+- `Nginx` — reverse proxy для панели и feed URL.
+
+---
+
+## 1. Установка зависимостей на сервер
 
 ```bash
 sudo apt update
@@ -24,7 +32,7 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 ```
 
-Проверка версий:
+Проверка:
 
 ```bash
 node -v
@@ -35,47 +43,47 @@ nginx -v
 
 ---
 
-## 2) Установка проекта
+## 2. Развертывание проекта
 
 ```bash
 cd /opt
-sudo git clone <ВАШ_РЕПО_URL> connector
+sudo git clone <YOUR_REPO_URL> connector
 cd connector
 npm install
 cp .env.example .env
 ```
 
-Откройте `.env` и укажите корректные параметры:
+Откройте `.env`:
 
 ```env
 PORT=3000
+APP_BASE_URL=https://panel.example.com
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=connector
-DB_PASSWORD=strong_password
+DB_PASSWORD=change_me
 DB_NAME=connector
-SESSION_SECRET=replace_with_long_random_secret
-COOKIE_SECURE=false
-TIMEZONE=UTC
+SESSION_SECRET=change_me_to_long_random_value
+COOKIE_SECURE=true
+REQUEST_TIMEOUT_MS=15000
 ```
 
-> Для production за Nginx обычно `COOKIE_SECURE=false`, если Node слушает только localhost, а HTTPS завершается на Nginx.
+Пояснения:
+
+- `APP_BASE_URL` — внешний адрес панели (с доменом и https), нужен для генерации итогового URL подписки.
+- `COOKIE_SECURE=true` используйте при HTTPS через Nginx.
 
 ---
 
-## 3) Настройка MySQL
-
-Войти в MySQL:
+## 3. Настройка MySQL
 
 ```bash
 sudo mysql
 ```
 
-Создать базу и пользователя:
-
 ```sql
 CREATE DATABASE connector CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'connector'@'127.0.0.1' IDENTIFIED BY 'strong_password';
+CREATE USER 'connector'@'127.0.0.1' IDENTIFIED BY 'change_me';
 GRANT ALL PRIVILEGES ON connector.* TO 'connector'@'127.0.0.1';
 FLUSH PRIVILEGES;
 EXIT;
@@ -83,37 +91,40 @@ EXIT;
 
 ---
 
-## 4) Первый запуск и разовая генерация логина/пароля
+## 4. Первый запуск и получение admin-доступа
 
 ```bash
 cd /opt/connector
 npm start
 ```
 
-При **первом запуске** в логах появится блок:
+При первом запуске в логе появится одноразовый блок:
 
 - `Login: admin_xxxxxx`
-- `Password: yyyyyy...`
+- `Password: xxxxxxxxxxxxx`
 
-Сохраните эти данные сразу. При последующих рестартах новые данные не генерируются.
+Также в логе будет общий URL подписки вида:
 
-Остановите процесс (`Ctrl+C`) и переходите к systemd.
+- `Subscription URL: https://panel.example.com/sub/<token>`
+
+Сохраните эти данные.
 
 ---
 
-## 5) Автозапуск через systemd
+## 5. Запуск через systemd
 
-Создайте сервис:
+Создайте unit-файл:
 
 ```bash
 sudo tee /etc/systemd/system/connector.service > /dev/null <<'UNIT'
 [Unit]
-Description=Connector Panel
+Description=Connector Panel (3x-UI merger)
 After=network.target mysql.service
 
 [Service]
 Type=simple
-User=root
+User=www-data
+Group=www-data
 WorkingDirectory=/opt/connector
 Environment=NODE_ENV=production
 ExecStart=/usr/bin/node /opt/connector/src/server.js
@@ -125,9 +136,10 @@ WantedBy=multi-user.target
 UNIT
 ```
 
-Запуск:
+Подготовьте права и запустите:
 
 ```bash
+sudo chown -R www-data:www-data /opt/connector
 sudo systemctl daemon-reload
 sudo systemctl enable connector
 sudo systemctl start connector
@@ -142,9 +154,7 @@ sudo journalctl -u connector -f
 
 ---
 
-## 6) Настройка Nginx (только панель)
-
-Создайте конфиг:
+## 6. Настройка Nginx (только панель)
 
 ```bash
 sudo tee /etc/nginx/sites-available/connector.conf > /dev/null <<'NGINX'
@@ -162,47 +172,73 @@ server {
     }
 }
 NGINX
-```
 
-Активируйте сайт:
-
-```bash
 sudo ln -s /etc/nginx/sites-available/connector.conf /etc/nginx/sites-enabled/connector.conf
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Теперь панель доступна по `http://panel.example.com`.
+После этого:
+
+- Панель: `http://panel.example.com/login`
+- Подписка: `http://panel.example.com/sub/<token>`
 
 ---
 
-## 7) Базовая эксплуатация и проверка
+## 7. HTTPS (рекомендуется)
 
-1. Открыть панель и войти под сгенерированным логином/паролем.
-2. Добавить до 10 подписок (Название + URL).
-3. Проверить удаление подписки.
-4. Открыть `/combined` для итогового объединенного списка URL.
-5. Переключить тему кнопкой «Сменить тему».
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d panel.example.com
+```
+
+После выдачи сертификата убедитесь, что в `.env`:
+
+- `APP_BASE_URL=https://panel.example.com`
+- `COOKIE_SECURE=true`
+
+И перезапустите:
+
+```bash
+sudo systemctl restart connector
+```
 
 ---
 
-## 8) Рекомендации для production
+## 8. Работа в админке
 
-- Обязательно включите HTTPS (например, Let's Encrypt).
-- Ограничьте доступ к серверу по firewall.
-- Регулярно делайте бэкап MySQL.
-- Меняйте пароль администратора через SQL при необходимости.
-- Используйте отдельного системного пользователя вместо `root` в systemd.
+1. Войти в `/login`.
+2. Добавить до 10 источников.
+3. При необходимости выключить отдельные источники (без удаления).
+4. Скопировать общий feed URL и использовать его в клиенте.
+5. Переключать темы кнопкой `Тема`.
 
 ---
 
-## 9) Быстрый SQL-сброс администратора (опционально)
+## 9. Сброс доступа
 
-Если нужно сбросить доступ, можно удалить администратора и перезапустить сервис.
+### Сброс admin-учетки
 
 ```sql
 USE connector;
 DELETE FROM admins;
 ```
 
-После перезапуска (`sudo systemctl restart connector`) будут сгенерированы новые одноразовые учетные данные.
+После `sudo systemctl restart connector` будут сгенерированы новые one-time учетные данные.
+
+### Сброс feed токена
+
+```sql
+USE connector;
+DELETE FROM feed_tokens;
+```
+
+После рестарта будет сгенерирован новый token.
+
+---
+
+## 10. Частые проблемы
+
+- `Invalid token` на `/sub/...` → используйте актуальный token из админки/логов.
+- Пустая подписка → проверьте, что источники включены и отдают валидные URI.
+- Ошибка входа в панель → проверьте `.env`, MySQL и логи `journalctl -u connector -f`.

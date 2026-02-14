@@ -8,52 +8,73 @@
 </head>
 <body>
   <main class="container">
-    <header class="header-row">
-      <h1>Панель подписок 3x-UI</h1>
-      <div class="toolbar">
-        <button id="theme-toggle" class="secondary" type="button">Сменить тему</button>
-        <form method="post" action="/logout"><button class="secondary" type="submit">Выйти</button></form>
+    <header class="top-row">
+      <div>
+        <h1>Connector / 3x-UI</h1>
+        <p class="muted">Добавление, включение/отключение и удаление подписок (до <%= max %>)</p>
+      </div>
+      <div class="actions">
+        <button type="button" id="theme-toggle" class="btn ghost">Тема</button>
+        <form method="post" action="/logout">
+          <button class="btn ghost" type="submit">Выйти</button>
+        </form>
       </div>
     </header>
 
-    <% if (error) { %><p class="alert error"><%= error %></p><% } %>
-    <% if (success) { %><p class="alert success"><%= success %></p><% } %>
+    <% if (error) { %><p class="notice error"><%= error %></p><% } %>
+    <% if (success) { %><p class="notice success"><%= success %></p><% } %>
 
-    <section class="card">
-      <h2>Добавление подписки</h2>
-      <p>Использовано <strong><%= total %></strong> из <strong><%= max %></strong> слотов.</p>
-      <form method="post" action="/subscriptions" class="grid-2">
-        <label>Название
-          <input type="text" name="title" maxlength="120" required>
+    <section class="panel">
+      <h2>Общая подписка</h2>
+      <p class="muted">Используйте этот URL в клиенте:</p>
+      <div class="feed-box">
+        <code><%= feedUrl %></code>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Добавить источник</h2>
+      <p class="muted">Слотов занято: <strong><%= total %>/<%= max %></strong></p>
+      <form method="post" action="/subscriptions" class="form-grid">
+        <label>
+          Название
+          <input type="text" name="name" maxlength="120" required>
         </label>
-        <label>URL подписки
-          <input type="url" name="url" required>
+        <label>
+          URL подписки
+          <input type="url" name="sourceUrl" required>
         </label>
-        <div class="full">
-          <button type="submit" <%= total >= max ? 'disabled' : '' %>>Добавить</button>
-        </div>
+        <button class="btn" type="submit" <%= total >= max ? 'disabled' : '' %>>Добавить</button>
       </form>
     </section>
 
-    <section class="card">
-      <h2>Список подписок</h2>
-      <p>Объединенный список URL: <a href="/combined" target="_blank" rel="noopener">/combined</a></p>
+    <section class="panel">
+      <h2>Источники</h2>
       <% if (subscriptions.length === 0) { %>
-        <p>Пока нет подписок.</p>
+        <p class="muted">Источники пока не добавлены.</p>
       <% } else { %>
-        <ul class="list">
-          <% subscriptions.forEach((sub) => { %>
-            <li>
-              <div>
-                <strong><%= sub.title %></strong>
-                <p><%= sub.url %></p>
-              </div>
-              <form method="post" action="/subscriptions/<%= sub.id %>/delete">
-                <button class="danger" type="submit">Удалить</button>
+      <ul class="source-list">
+        <% subscriptions.forEach((sub) => { %>
+          <li>
+            <div class="source-main">
+              <strong><%= sub.name %></strong>
+              <p><%= sub.source_url %></p>
+              <span class="badge <%= sub.enabled ? 'ok' : 'off' %>">
+                <%= sub.enabled ? 'Включена' : 'Отключена' %>
+              </span>
+            </div>
+            <div class="source-actions">
+              <form method="post" action="/subscriptions/<%= sub.id %>/toggle">
+                <input type="hidden" name="enabled" value="<%= sub.enabled ? 0 : 1 %>">
+                <button class="btn ghost" type="submit"><%= sub.enabled ? 'Отключить' : 'Включить' %></button>
               </form>
-            </li>
-          <% }) %>
-        </ul>
+              <form method="post" action="/subscriptions/<%= sub.id %>/delete">
+                <button class="btn danger" type="submit">Удалить</button>
+              </form>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
       <% } %>
     </section>
   </main>

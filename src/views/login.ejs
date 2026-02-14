@@ -3,28 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connector — Вход</title>
+  <title>Connector — Авторизация</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <main class="container narrow">
-    <header class="header-row">
-      <h1>Connector Admin</h1>
-      <button id="theme-toggle" class="secondary" type="button">Сменить тему</button>
-    </header>
+  <main class="container login-wrap">
+    <section class="panel">
+      <div class="top-row">
+        <h1>Connector</h1>
+        <button type="button" id="theme-toggle" class="btn ghost">Тема</button>
+      </div>
+      <p class="muted">Панель объединения подписок 3x-UI</p>
 
-    <% if (error) { %><p class="alert error"><%= error %></p><% } %>
-    <% if (success) { %><p class="alert success"><%= success %></p><% } %>
+      <% if (error) { %><p class="notice error"><%= error %></p><% } %>
+      <% if (success) { %><p class="notice success"><%= success %></p><% } %>
 
-    <form method="post" action="/login" class="card">
-      <label>Логин
-        <input name="username" type="text" required>
-      </label>
-      <label>Пароль
-        <input name="password" type="password" required>
-      </label>
-      <button type="submit">Войти</button>
-    </form>
+      <form method="post" action="/login" class="form-block">
+        <label>
+          Логин
+          <input type="text" name="username" required>
+        </label>
+        <label>
+          Пароль
+          <input type="password" name="password" required>
+        </label>
+        <button class="btn" type="submit">Войти</button>
+      </form>
+    </section>
   </main>
   <script src="/static/theme.js"></script>
 </body>

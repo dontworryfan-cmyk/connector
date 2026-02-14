@@ -1,7 +1,7 @@
 {
-  "name": "connector-panel",
-  "version": "1.0.0",
-  "description": "Admin panel for combining up to 10 3x-UI subscriptions",
+  "name": "connector",
+  "version": "2.0.0",
+  "description": "GUI panel and subscription combiner for multiple 3x-UI links",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
