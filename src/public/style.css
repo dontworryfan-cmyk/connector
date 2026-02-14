@@ -1,0 +1,77 @@
+:root {
+  --bg: #ffffff;
+  --text: #121212;
+  --card: #f6f6f6;
+  --border: #dfdfdf;
+  --primary: #111111;
+  --primary-text: #ffffff;
+  --danger: #7a1313;
+  --danger-text: #ffffff;
+}
+
+:root[data-theme='dark'] {
+  --bg: #1f1f1f;
+  --text: #f3f3f3;
+  --card: #2a2a2a;
+  --border: #3a3a3a;
+  --primary: #f2f2f2;
+  --primary-text: #111111;
+  --danger: #c55a5a;
+  --danger-text: #ffffff;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+.container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+.narrow { max-width: 460px; }
+.header-row { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+.toolbar { display:flex; gap: .5rem; align-items:center; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+label { display:flex; flex-direction:column; gap:.4rem; margin-bottom: .7rem; }
+input {
+  border:1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 8px;
+  padding: .65rem;
+}
+button {
+  border:0;
+  background: var(--primary);
+  color: var(--primary-text);
+  padding: .6rem .9rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button.secondary { background: transparent; color: var(--text); border:1px solid var(--border); }
+button.danger { background: var(--danger); color: var(--danger-text); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.alert { padding: .7rem; border-radius: 8px; }
+.alert.error { background: #ba3f3f22; border: 1px solid #ba3f3f66; }
+.alert.success { background: #2a8b2a22; border: 1px solid #2a8b2a66; }
+.grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-2 .full { grid-column: 1/-1; }
+.list { list-style:none; padding:0; margin:0; }
+.list li {
+  display:flex;
+  justify-content:space-between;
+  gap: 1rem;
+  align-items:flex-start;
+  padding: .9rem 0;
+  border-bottom:1px solid var(--border);
+}
+.list p { margin: .35rem 0 0; word-break: break-all; }
+@media (max-width: 760px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}

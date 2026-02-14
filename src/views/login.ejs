@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connector — Вход</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container narrow">
+    <header class="header-row">
+      <h1>Connector Admin</h1>
+      <button id="theme-toggle" class="secondary" type="button">Сменить тему</button>
+    </header>
+
+    <% if (error) { %><p class="alert error"><%= error %></p><% } %>
+    <% if (success) { %><p class="alert success"><%= success %></p><% } %>
+
+    <form method="post" action="/login" class="card">
+      <label>Логин
+        <input name="username" type="text" required>
+      </label>
+      <label>Пароль
+        <input name="password" type="password" required>
+      </label>
+      <button type="submit">Войти</button>
+    </form>
+  </main>
+  <script src="/static/theme.js"></script>
+</body>
+</html>

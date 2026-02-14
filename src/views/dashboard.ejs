@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connector — Панель</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header-row">
+      <h1>Панель подписок 3x-UI</h1>
+      <div class="toolbar">
+        <button id="theme-toggle" class="secondary" type="button">Сменить тему</button>
+        <form method="post" action="/logout"><button class="secondary" type="submit">Выйти</button></form>
+      </div>
+    </header>
+
+    <% if (error) { %><p class="alert error"><%= error %></p><% } %>
+    <% if (success) { %><p class="alert success"><%= success %></p><% } %>
+
+    <section class="card">
+      <h2>Добавление подписки</h2>
+      <p>Использовано <strong><%= total %></strong> из <strong><%= max %></strong> слотов.</p>
+      <form method="post" action="/subscriptions" class="grid-2">
+        <label>Название
+          <input type="text" name="title" maxlength="120" required>
+        </label>
+        <label>URL подписки
+          <input type="url" name="url" required>
+        </label>
+        <div class="full">
+          <button type="submit" <%= total >= max ? 'disabled' : '' %>>Добавить</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Список подписок</h2>
+      <p>Объединенный список URL: <a href="/combined" target="_blank" rel="noopener">/combined</a></p>
+      <% if (subscriptions.length === 0) { %>
+        <p>Пока нет подписок.</p>
+      <% } else { %>
+        <ul class="list">
+          <% subscriptions.forEach((sub) => { %>
+            <li>
+              <div>
+                <strong><%= sub.title %></strong>
+                <p><%= sub.url %></p>
+              </div>
+              <form method="post" action="/subscriptions/<%= sub.id %>/delete">
+                <button class="danger" type="submit">Удалить</button>
+              </form>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </section>
+  </main>
+  <script src="/static/theme.js"></script>
+</body>
+</html>
