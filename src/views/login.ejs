@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connector — Авторизация</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container login-wrap">
+    <section class="panel">
+      <div class="top-row">
+        <h1>Connector</h1>
+        <button type="button" id="theme-toggle" class="btn ghost">Тема</button>
+      </div>
+      <p class="muted">Панель объединения подписок 3x-UI</p>
+
+      <% if (error) { %><p class="notice error"><%= error %></p><% } %>
+      <% if (success) { %><p class="notice success"><%= success %></p><% } %>
+
+      <form method="post" action="/login" class="form-block">
+        <label>
+          Логин
+          <input type="text" name="username" required>
+        </label>
+        <label>
+          Пароль
+          <input type="password" name="password" required>
+        </label>
+        <button class="btn" type="submit">Войти</button>
+      </form>
+    </section>
+  </main>
+  <script src="/static/theme.js"></script>
+</body>
+</html>

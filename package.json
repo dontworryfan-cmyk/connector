@@ -1,0 +1,20 @@
+{
+  "name": "connector",
+  "version": "2.0.0",
+  "description": "GUI panel and subscription combiner for multiple 3x-UI links",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "NODE_ENV=development node src/server.js",
+    "check": "node --check src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-mysql-session": "^3.0.3",
+    "express-session": "^1.18.0",
+    "mysql2": "^3.11.0"
+  }
+}

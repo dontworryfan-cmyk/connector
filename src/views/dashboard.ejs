@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connector — Панель</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="top-row">
+      <div>
+        <h1>Connector / 3x-UI</h1>
+        <p class="muted">Добавление, включение/отключение и удаление подписок (до <%= max %>)</p>
+      </div>
+      <div class="actions">
+        <button type="button" id="theme-toggle" class="btn ghost">Тема</button>
+        <form method="post" action="/logout">
+          <button class="btn ghost" type="submit">Выйти</button>
+        </form>
+      </div>
+    </header>
+
+    <% if (error) { %><p class="notice error"><%= error %></p><% } %>
+    <% if (success) { %><p class="notice success"><%= success %></p><% } %>
+
+    <section class="panel">
+      <h2>Общая подписка</h2>
+      <p class="muted">Используйте этот URL в клиенте:</p>
+      <div class="feed-box">
+        <code><%= feedUrl %></code>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Добавить источник</h2>
+      <p class="muted">Слотов занято: <strong><%= total %>/<%= max %></strong></p>
+      <form method="post" action="/subscriptions" class="form-grid">
+        <label>
+          Название
+          <input type="text" name="name" maxlength="120" required>
+        </label>
+        <label>
+          URL подписки
+          <input type="url" name="sourceUrl" required>
+        </label>
+        <button class="btn" type="submit" <%= total >= max ? 'disabled' : '' %>>Добавить</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Источники</h2>
+      <% if (subscriptions.length === 0) { %>
+        <p class="muted">Источники пока не добавлены.</p>
+      <% } else { %>
+      <ul class="source-list">
+        <% subscriptions.forEach((sub) => { %>
+          <li>
+            <div class="source-main">
+              <strong><%= sub.name %></strong>
+              <p><%= sub.source_url %></p>
+              <span class="badge <%= sub.enabled ? 'ok' : 'off' %>">
+                <%= sub.enabled ? 'Включена' : 'Отключена' %>
+              </span>
+            </div>
+            <div class="source-actions">
+              <form method="post" action="/subscriptions/<%= sub.id %>/toggle">
+                <input type="hidden" name="enabled" value="<%= sub.enabled ? 0 : 1 %>">
+                <button class="btn ghost" type="submit"><%= sub.enabled ? 'Отключить' : 'Включить' %></button>
+              </form>
+              <form method="post" action="/subscriptions/<%= sub.id %>/delete">
+                <button class="btn danger" type="submit">Удалить</button>
+              </form>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+      <% } %>
+    </section>
+  </main>
+  <script src="/static/theme.js"></script>
+</body>
+</html>
